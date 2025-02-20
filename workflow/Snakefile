@@ -1,0 +1,78 @@
+configfile: "./config/config.yaml"
+
+rule all:
+    input:
+        [f"results/QC/FastQC/{sample}_1_fastqc.html" for sample in config["samples"]],
+        [f"results/QC/FastQC/{sample}_1_fastqc.zip" for sample in config["samples"]],
+        [f"results/QC/FastQC/{sample}_2_fastqc.html" for sample in config["samples"]],
+        [f"results/QC/FastQC/{sample}_2_fastqc.zip" for sample in config["samples"]],
+        [f"results/BAM/{sample}.sorted.bam" for sample in config["samples"]],
+        [f"results/BAM/{sample}.sorted.bam.bai" for sample in config["samples"]]
+
+
+rule fastqc:
+    input:
+        lambda wildcards: config["samples"][wildcards.sample]
+    output:
+        "results/QC/FastQC/{sample}_1_fastqc.html",
+        "results/QC/FastQC/{sample}_1_fastqc.zip",
+        "results/QC/FastQC/{sample}_2_fastqc.html",
+        "results/QC/FastQC/{sample}_2_fastqc.zip"
+    conda:
+        "envs/qc.yaml"
+    shell:
+        "fastqc {input} --outdir=results/QC/FastQC/"
+    
+rule bowtie2_index:
+    input:
+        config["reference"]
+    output:
+        "ref/ref.1.bt2",
+        "ref/ref.2.bt2",
+        "ref/ref.3.bt2",
+        "ref/ref.4.bt2",
+        "ref/ref.rev.1.bt2",
+        "ref/ref.rev.2.bt2",
+        
+    conda:
+        "envs/bowtie2.yaml"
+    shell:
+        "bowtie2-build {input} ref/ref"
+
+rule bowtie2_align:
+    input:
+        fastq_files = lambda wildcards: config["samples"][wildcards.sample],
+        reference = "./ref/ref.1.bt2"
+    output:
+        temp("results/BAM/{sample}.sam")
+    conda:
+        "envs/bowtie2.yaml"
+    shell:
+        "bowtie2 -x ./ref/ref -1 {input.fastq_files[0]} -2 {input.fastq_files[1]} > results/BAM/{wildcards.sample}.sam"
+
+rule samtools_sam2bam:
+    input:
+        "results/BAM/{sample}.sam"
+    output:
+        temp("results/BAM/{sample}.bam")
+    conda:
+        "envs/samtools.yaml"
+    shell:
+        "samtools view -bS {input} > results/BAM/{wildcards.sample}.bam"
+
+rule samtools_index_bam:
+    input:
+        "results/BAM/{sample}.bam"
+    output:
+        "results/BAM/{sample}.sorted.bam",
+        "results/BAM/{sample}.sorted.bam.bai"
+    conda:
+        "envs/samtools.yaml"
+    shell:
+        "samtools sort {input} > results/BAM/{wildcards.sample}.sorted.bam; "
+        "samtools index results/BAM/{wildcards.sample}.sorted.bam"
+
+rule featurecounts:
+    input:
+        bam = [f"results/BAM/{sample}.bam" for sample in config["samples"]],
+        bai = [f"results/BAM/{sample}.bam.bai" for sample in config["samples"]],

@@ -1,0 +1,8 @@
+samples:
+  gut: 
+   - "/Users/logan/Documents/Nextflow_RNAseq/data/gut_1.fq"
+   - "/Users/logan/Documents/Nextflow_RNAseq/data/gut_2.fq"
+  
+# liver: "/Users/logan/Documents/Nextflow_RNAseq/data/liver_{1,2}.fq"
+
+reference: "/Users/logan/Documents/Nextflow_RNAseq/data/transcriptome.fa"
