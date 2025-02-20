@@ -2,7 +2,14 @@ samples:
   gut: 
    - "/Users/logan/Documents/Nextflow_RNAseq/data/gut_1.fq"
    - "/Users/logan/Documents/Nextflow_RNAseq/data/gut_2.fq"
-  
-# liver: "/Users/logan/Documents/Nextflow_RNAseq/data/liver_{1,2}.fq"
+  liver: 
+   - "/Users/logan/Documents/Nextflow_RNAseq/data/liver_1.fq"
+   - "/Users/logan/Documents/Nextflow_RNAseq/data/liver_2.fq"
+  lung: 
+   - "/Users/logan/Documents/Nextflow_RNAseq/data/lung_1.fq"
+   - "/Users/logan/Documents/Nextflow_RNAseq/data/lung_2.fq"
 
 reference: "/Users/logan/Documents/Nextflow_RNAseq/data/transcriptome.fa"
+
+annotation_file: '/Users/logan/Documents/Nextflow_RNAseq/data/ggal4.gtf'
+annotation_file_type: 'GTF'
