@@ -13,3 +13,5 @@ reference: "/Users/logan/Documents/Nextflow_RNAseq/data/transcriptome.fa"
 
 annotation_file: '/Users/logan/Documents/Nextflow_RNAseq/data/ggal4.gtf'
 annotation_file_type: 'GTF'
+
+metadata: "/Users/logan/Documents/SampleSheetGenerator/metadata.csv"

@@ -1,0 +1,12 @@
+channels:
+  - conda-forge
+  - bioconda
+
+dependencies:
+  - r-base=4.4.2
+  - r-ggplot2
+  - r-dplyr
+  - r-biocmanager
+  - r-locfit
+  - bioconductor-biocparallel
+  # - bioconductor-deseq2=1.46

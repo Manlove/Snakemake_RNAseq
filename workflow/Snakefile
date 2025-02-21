@@ -6,7 +6,8 @@ rule all:
         [f"results/QC/FastQC/{sample}_1_fastqc.zip" for sample in config["samples"]],
         [f"results/QC/FastQC/{sample}_2_fastqc.html" for sample in config["samples"]],
         [f"results/QC/FastQC/{sample}_2_fastqc.zip" for sample in config["samples"]],
-        "results/feature_counts.txt"
+        "results/feature_counts.txt",
+        "results/plots/pca_plot.png"
 
 
 rule fastqc:
@@ -112,3 +113,15 @@ rule subread_featurecounts:
             "-o results/feature_counts.txt "
             "{input.bam} "
             "2> {log}"
+
+rule plot_pca:
+    input:
+        count_table = "results/feature_counts.txt",
+        metadata = config["metadata"]
+    output:
+        "results/plots/pca_plot.png"
+    conda:
+        "envs/r_plots.yaml"
+    script:
+        "scripts/pca.R"
+    
