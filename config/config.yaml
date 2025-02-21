@@ -1,17 +1,14 @@
 samples:
-  gut: 
-   - "/Users/logan/Documents/Nextflow_RNAseq/data/gut_1.fq"
-   - "/Users/logan/Documents/Nextflow_RNAseq/data/gut_2.fq"
-  liver: 
-   - "/Users/logan/Documents/Nextflow_RNAseq/data/liver_1.fq"
-   - "/Users/logan/Documents/Nextflow_RNAseq/data/liver_2.fq"
-  lung: 
-   - "/Users/logan/Documents/Nextflow_RNAseq/data/lung_1.fq"
-   - "/Users/logan/Documents/Nextflow_RNAseq/data/lung_2.fq"
+  Sample1: 
+   - "/Users/logan/Documents/Snakemake_RNAseq/data/Sample1_1.fastq.gz"
+   - "/Users/logan/Documents/Snakemake_RNAseq/data/Sample1_2.fastq.gz"
+  Sample2: 
+   - "/Users/logan/Documents/Snakemake_RNAseq/data/Sample2_1.fastq.gz"
+   - "/Users/logan/Documents/Snakemake_RNAseq/data/Sample2_2.fastq.gz"
 
-reference: "/Users/logan/Documents/Nextflow_RNAseq/data/transcriptome.fa"
+reference: "/Users/logan/Documents/Snakemake_RNAseq/data/Homo_sapiens/UCSC/hg38/Sequence/WholeGenomeFasta/genome.fa"
 
-annotation_file: '/Users/logan/Documents/Nextflow_RNAseq/data/ggal4.gtf'
+annotation_file: '/Users/logan/Documents/Snakemake_RNAseq/data/Homo_sapiens/UCSC/hg38/Annotation/Genes/genes.gtf'
 annotation_file_type: 'GTF'
 
 metadata: "/Users/logan/Documents/SampleSheetGenerator/metadata.csv"

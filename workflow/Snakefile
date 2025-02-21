@@ -10,6 +10,7 @@ rule all:
         "results/plots/pca_plot.png"
 
 
+
 rule fastqc:
     input:
         lambda wildcards: config["samples"][wildcards.sample]
@@ -27,41 +28,80 @@ rule fastqc:
         "fastqc {input} --outdir results/QC/FastQC/ --threads {threads} 2> {log}"
 
 
-rule bowtie2_index:
+rule hisat_index_genome:
     input:
         config["reference"]
     output:
-        "ref/ref.1.bt2",
-        "ref/ref.2.bt2",
-        "ref/ref.3.bt2",
-        "ref/ref.4.bt2",
-        "ref/ref.rev.1.bt2",
-        "ref/ref.rev.2.bt2",
+        "ref/ref.1.ht2",
+        "ref/ref.2.ht2",
+        "ref/ref.3.ht2",
+        "ref/ref.4.ht2",
+        "ref/ref.5.ht2",
+        "ref/ref.6.ht2",
+        "ref/ref.7.ht2",
+        "ref/ref.8.ht2"
     conda:
-        "envs/bowtie2.yaml"
+        "envs/hisat.yaml"
+    threads: 8
     log:
-        "results/logs/Bowtie2/index_reference.log"
+        "results/logs/hisat2/index_reference.log"
     shell:
-        "bowtie2-build {input} ref/ref 2> {log}"
+        "hisat2-build -p {threads} {input} ref/ref 2> {log}"
+    
 
-
-rule bowtie2_align:
+rule hisat2_align:
     input:
         fastq_files = lambda wildcards: config["samples"][wildcards.sample],
-        reference = "ref/ref.1.bt2"
+        reference = "ref/ref.1.ht2"
     output:
         temp("results/BAM/{sample}.sam")
     conda:
-        "envs/bowtie2.yaml"
+        "envs/hisat.yaml"
     log:
-        "results/logs/Bowtie2/align_{sample}.log"
+        "results/logs/hisat2/align_{sample}.log"
     shell:
-        "bowtie2 "
+        "hisat2 "
             "-x ref/ref "
             "-1 {input.fastq_files[0]} "
             "-2 {input.fastq_files[1]} "
-            "> results/BAM/{wildcards.sample}.sam "
+            "-S results/BAM/{wildcards.sample}.sam "
             "2> {log}"
+
+# rule bowtie2_index:
+#     input:
+#         config["reference"]
+#     output:
+#         "ref/ref.1.bt2",
+#         "ref/ref.2.bt2",
+#         "ref/ref.3.bt2",
+#         "ref/ref.4.bt2",
+#         "ref/ref.rev.1.bt2",
+#         "ref/ref.rev.2.bt2",
+#     conda:
+#         "envs/bowtie2.yaml"
+#     log:
+#         "results/logs/Bowtie2/index_reference.log"
+#     shell:
+#         "bowtie2-build {input} ref/ref 2> {log}"
+
+
+# rule bowtie2_align:
+#     input:
+#         fastq_files = lambda wildcards: config["samples"][wildcards.sample],
+#         reference = "ref/ref.1.bt2"
+#     output:
+#         temp("results/BAM/{sample}.sam")
+#     conda:
+#         "envs/bowtie2.yaml"
+#     log:
+#         "results/logs/Bowtie2/align_{sample}.log"
+#     shell:
+#         "bowtie2 "
+#             "-x ref/ref "
+#             "-1 {input.fastq_files[0]} "
+#             "-2 {input.fastq_files[1]} "
+#             "> results/BAM/{wildcards.sample}.sam "
+#             "2> {log}"
 
 
 rule samtools_sam2bam:
