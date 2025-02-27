@@ -1,5 +1,6 @@
 configfile: "./config/config.yaml"
 include: "./rules/fastq_qc.smk"
+include: "./rules/qualimap_qc.smk"
 import os
 
 # rule all:
@@ -28,7 +29,7 @@ rule all:
         [f"results/QC/flagstats/{sample}.flagstats.txt" for sample in config["samples"]],
         [f"results/QC/idxstats/{sample}.idxstats.txt" for sample in config["samples"]],
         [f"results/QC/qualimap/{sample}_BAMQC/" for sample in config["samples"]],
-        [f"results/{sample}_countfile.rnaseqqc.txt" for sample in config["samples"]]
+        [f"results/count_data/{sample}_countfile.compcount.txt" for sample in config["samples"]]
 
 rule hisat_index_genome:
     input:
@@ -137,71 +138,7 @@ rule samtools_idxstats:
         "> results/QC/idxstats/{wildcards.sample}.idxstats.txt"
 
 
-rule qualimap_bamqc:
-    input:
-        bam = "results/BAM/{sample}.sorted.bam",
-        index = "results/BAM/{sample}.sorted.bam.bai",
-        wd = os.getcwd()
-    output:
-        directory('results/QC/qualimap/{sample}_BAMQC/')
-    threads: 8
-    log:
-        "results/logs/qualimap/{sample}.qualimap.bamqc.log"
-    params:
-        gtf = config["annotation_file"]
-    shell:
-        "(docker run --rm --user root "
-            "-v {input.wd}/{input.bam}:/{input.bam} "
-            "-v {input.wd}/{input.index}:/{input.index} " 
-            "-v {input.wd}/{output}/:/{output}/ "
-            "-v {params.gtf}:/{params.gtf} "
-            "-w / "
-            "community.wave.seqera.io/library/qualimap:2.3--8375b60bba97a2a6 "
-            "bash -c \"mkdir -p /{output} && "
-            "qualimap bamqc "
-            "-bam {input.bam} "
-            "--feature-file {params.gtf} "
-            "--paint-chromosome-limits "
-            "--nt {threads} "
-            "-outdir /{output}/ "
-            "-outformat 'html'\" "
-            ")2> {log}"
 
-rule qualimap_rnaseqqc:
-    input:
-        bam = "results/BAM/{sample}.sorted.bam",
-        index = "results/BAM/{sample}.sorted.bam.bai",
-        wd = os.getcwd()
-    output:
-        directory('results/QC/qualimap/{sample}_RNAseqQC/'),
-        'results/{sample}_countfile.rnaseqqc.txt'
-    threads: 8
-    log:
-        "results/logs/qualimap/{sample}.qualimap.rnaseqqc.log"
-    params:
-        gtf = config["annotation_file"]
-    shell:
-        # "mkdir {output}; "
-        # "chmod 777 {output}; "
-        "(docker run --rm --user root "
-            "-v {input.wd}/{input.bam}:/{input.bam} "
-            "-v {input.wd}/{input.index}:/{input.index} " 
-            "-v {input.wd}/{output[0]}/:/{output[0]}/ "
-            "-v {params.gtf}:/{params.gtf} "
-            "-v {input.wd}/results/:/results/ "
-            "-w / "
-            "community.wave.seqera.io/library/qualimap:2.3--8375b60bba97a2a6 "
-            "bash -c \"mkdir -p /{output[0]} && "
-            "qualimap rnaseq "
-            "-bam {input.bam} "
-            "-gtf {params.gtf} "
-            "--paired "
-            "--sorted "
-            "-oc /{output[1]} "
-            "-outdir /{output[0]}/ "
-            "-outformat 'html' "
-            "&& ls /results/\" "
-            ")2> {log}"
 #rule RSeQC:
 
 rule subread_featurecounts:
@@ -210,7 +147,7 @@ rule subread_featurecounts:
         bai = [f"results/BAM/{sample}.sorted.bam.bai" for sample in config["samples"]],
         gtf = config["annotation_file"]
     output:
-        "results/feature_counts.txt"
+        "results/count_data/feature_counts.txt"
     conda:
         "envs/subread.yaml"
     threads: 4
@@ -226,7 +163,7 @@ rule subread_featurecounts:
             "-t exon "
             "-g gene_id "
             "-a {input.gtf} "
-            "-o results/feature_counts.txt "
+            "-o {output}} "
             "{input.bam} "
             "2> {log}"
 
