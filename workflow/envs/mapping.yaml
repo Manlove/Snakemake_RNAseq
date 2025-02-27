@@ -2,3 +2,4 @@ channels:
  - bioconda
 dependencies:
  - samtools = 1.21
+ - rseqc = 5.0.4

@@ -2,9 +2,9 @@ samples:
   Sample1: 
    - "/Users/logan/Documents/Snakemake_RNAseq/data/Sample1_1.fastq.gz"
    - "/Users/logan/Documents/Snakemake_RNAseq/data/Sample1_2.fastq.gz"
-  Sample2: 
-   - "/Users/logan/Documents/Snakemake_RNAseq/data/Sample2_1.fastq.gz"
-   - "/Users/logan/Documents/Snakemake_RNAseq/data/Sample2_2.fastq.gz"
+  # Sample2: 
+  #  - "/Users/logan/Documents/Snakemake_RNAseq/data/Sample2_1.fastq.gz"
+  #  - "/Users/logan/Documents/Snakemake_RNAseq/data/Sample2_2.fastq.gz"
 
 reference: "/Users/logan/Documents/Snakemake_RNAseq/data/Homo_sapiens/UCSC/hg38/Sequence/WholeGenomeFasta/genome.fa"
 
@@ -12,3 +12,13 @@ annotation_file: '/Users/logan/Documents/Snakemake_RNAseq/data/Homo_sapiens/UCSC
 annotation_file_type: 'GTF'
 
 metadata: "/Users/logan/Documents/SampleSheetGenerator/metadata.csv"
+
+# fastp
+minimum_length: 50
+maximum_length: 0
+minimum_quality: 20
+complexity_filter: True
+complexity_minimum: 30
+auto_detect_adapters: True
+adapter_read_1: "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA"
+adapter_read_2: "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT"

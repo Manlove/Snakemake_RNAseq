@@ -1,32 +1,34 @@
 configfile: "./config/config.yaml"
+include: "./rules/fastq_qc.smk"
+import os
+
+# rule all:
+#     input:
+#         [f"results/QC/FastQC/{sample}_1_fastqc.html" for sample in config["samples"]],
+#         [f"results/QC/FastQC/{sample}_1_fastqc.zip" for sample in config["samples"]],
+#         [f"results/QC/FastQC/{sample}_2_fastqc.html" for sample in config["samples"]],
+#         [f"results/QC/FastQC/{sample}_2_fastqc.zip" for sample in config["samples"]],
+#         [f"results/QC/FastQC/{sample}_1_fastqc.html" for sample in config["samples"]],
+#         [f"results/QC/FastQC/{sample}_1_fastqc.zip" for sample in config["samples"]],
+#         [f"results/QC/FastQC/{sample}_2_fastqc.html" for sample in config["samples"]],
+#         [f"results/QC/FastQC/{sample}_2_fastqc.zip" for sample in config["samples"]],
+#         [f"fastq/trimmed/{sample}_trimmed_1.fastq.gz" for sample in config["samples"]],
+#         [f"fastq/trimmed/{sample}_trimmed_2.fastq.gz" for sample in config["samples"]],
+#         [f"results/QC/FastQC/{sample}_trimmed_1_fastqc.html" for sample in config["samples"]],
+#         "results/feature_counts.txt",
+#         "results/plots/pca_plot.png",
+#         [f"results/QC/flagstats/{sample}.flagstats.txt" for sample in config["samples"]],
+#         [f"results/QC/idxstats/{sample}.idxstats.txt" for sample in config["samples"]]
 
 rule all:
     input:
-        [f"results/QC/FastQC/{sample}_1_fastqc.html" for sample in config["samples"]],
-        [f"results/QC/FastQC/{sample}_1_fastqc.zip" for sample in config["samples"]],
-        [f"results/QC/FastQC/{sample}_2_fastqc.html" for sample in config["samples"]],
-        [f"results/QC/FastQC/{sample}_2_fastqc.zip" for sample in config["samples"]],
-        "results/feature_counts.txt",
-        "results/plots/pca_plot.png"
-
-
-
-rule fastqc:
-    input:
-        lambda wildcards: config["samples"][wildcards.sample]
-    output:
-        "results/QC/FastQC/{sample}_1_fastqc.html",
-        "results/QC/FastQC/{sample}_1_fastqc.zip",
-        "results/QC/FastQC/{sample}_2_fastqc.html",
-        "results/QC/FastQC/{sample}_2_fastqc.zip"
-    conda:
-        "envs/qc.yaml"
-    threads: 2
-    log:
-        "results/logs/FastQC/{sample}.log"
-    shell:
-        "fastqc {input} --outdir results/QC/FastQC/ --threads {threads} 2> {log}"
-
+        [f"fastq/trimmed/{sample}_trimmed_1.fastq.gz" for sample in config["samples"]],
+        [f"fastq/trimmed/{sample}_trimmed_2.fastq.gz" for sample in config["samples"]],
+        [f"results/QC/FastQC/{sample}_trimmed_1_fastqc.html" for sample in config["samples"]],
+        [f"results/QC/flagstats/{sample}.flagstats.txt" for sample in config["samples"]],
+        [f"results/QC/idxstats/{sample}.idxstats.txt" for sample in config["samples"]],
+        [f"results/QC/qualimap/{sample}_BAMQC/" for sample in config["samples"]],
+        [f"results/{sample}_countfile.rnaseqqc.txt" for sample in config["samples"]]
 
 rule hisat_index_genome:
     input:
@@ -54,7 +56,9 @@ rule hisat2_align:
         fastq_files = lambda wildcards: config["samples"][wildcards.sample],
         reference = "ref/ref.1.ht2"
     output:
-        temp("results/BAM/{sample}.sam")
+        temp("temp/SAM/{sample}.sam"),
+        "results/QC/hisat2/{sample}.hisat2.met",
+        "results/QC/hisat2/{sample}.hisat2.summary"
     conda:
         "envs/hisat.yaml"
     log:
@@ -65,68 +69,140 @@ rule hisat2_align:
             "-1 {input.fastq_files[0]} "
             "-2 {input.fastq_files[1]} "
             "-S results/BAM/{wildcards.sample}.sam "
+            "--summary-file results/QC/hisat2/{wildcards.sample}.hisat2.summary "
+            "--new-summary "
+            "--met-file results/QC/hisat2/{wildcards.sample}.hisat2.met "
             "2> {log}"
-
-# rule bowtie2_index:
-#     input:
-#         config["reference"]
-#     output:
-#         "ref/ref.1.bt2",
-#         "ref/ref.2.bt2",
-#         "ref/ref.3.bt2",
-#         "ref/ref.4.bt2",
-#         "ref/ref.rev.1.bt2",
-#         "ref/ref.rev.2.bt2",
-#     conda:
-#         "envs/bowtie2.yaml"
-#     log:
-#         "results/logs/Bowtie2/index_reference.log"
-#     shell:
-#         "bowtie2-build {input} ref/ref 2> {log}"
-
-
-# rule bowtie2_align:
-#     input:
-#         fastq_files = lambda wildcards: config["samples"][wildcards.sample],
-#         reference = "ref/ref.1.bt2"
-#     output:
-#         temp("results/BAM/{sample}.sam")
-#     conda:
-#         "envs/bowtie2.yaml"
-#     log:
-#         "results/logs/Bowtie2/align_{sample}.log"
-#     shell:
-#         "bowtie2 "
-#             "-x ref/ref "
-#             "-1 {input.fastq_files[0]} "
-#             "-2 {input.fastq_files[1]} "
-#             "> results/BAM/{wildcards.sample}.sam "
-#             "2> {log}"
 
 
 rule samtools_sam2bam:
     input:
-        "results/BAM/{sample}.sam"
+        "temp/BAM/{sample}.sam"
     output:
         temp("results/BAM/{sample}.bam")
     conda:
-        "envs/samtools.yaml"
+        "envs/mapping.yaml"
+    threads: 4
     shell:
-        "samtools view -bS {input} > results/BAM/{wildcards.sample}.bam"
+        "samtools view -b --threads {threads} {input} > results/BAM/{sample}.bam"
+
+rule samtools_sort_bam:
+    input:
+        "results/BAM/{sample}.bam"
+    output:
+        "results/BAM/{sample}.sorted.bam"
+    conda:
+        "envs/mapping.yaml"
+    threads: 4
+    shell:
+        "samtools sort --threads {threads} {input} -o results/BAM/{sample}.sorted.bam"
 
 
 rule samtools_index_bam:
     input:
-        "results/BAM/{sample}.bam"
+        "results/BAM/{sample}.sorted.bam"
     output:
-        "results/BAM/{sample}.sorted.bam",
         "results/BAM/{sample}.sorted.bam.bai"
     conda:
-        "envs/samtools.yaml"
+        "envs/mapping.yaml"
+    threads: 4
     shell:
-        "samtools sort {input} > results/BAM/{wildcards.sample}.sorted.bam; "
-        "samtools index results/BAM/{wildcards.sample}.sorted.bam"
+        "samtools index --threads {threads} {input}"
 
+
+rule samtools_flagstats:
+    input:
+        "results/BAM/{sample}.sorted.bam"
+    output:
+        "results/QC/flagstats/{sample}.flagstats.txt"
+    conda:
+        "envs/mapping.yaml"
+    threads: 4
+    shell:
+        "samtools flagstats --threads {threads} {input} "
+        "> results/QC/flagstats/{wildcards.sample}.flagstats.txt"
+    
+
+rule samtools_idxstats:
+    input:
+        "results/BAM/{sample}.sorted.bam",
+        "results/BAM/{sample}.sorted.bam.bai"
+    output:
+        "results/QC/idxstats/{sample}.idxstats.txt"
+    conda:
+        "envs/mapping.yaml"
+    threads: 4
+    shell:
+        "samtools idxstats --threads {threads} {input[0]} "
+        "> results/QC/idxstats/{wildcards.sample}.idxstats.txt"
+
+
+rule qualimap_bamqc:
+    input:
+        bam = "results/BAM/{sample}.sorted.bam",
+        index = "results/BAM/{sample}.sorted.bam.bai",
+        wd = os.getcwd()
+    output:
+        directory('results/QC/qualimap/{sample}_BAMQC/')
+    threads: 8
+    log:
+        "results/logs/qualimap/{sample}.qualimap.bamqc.log"
+    params:
+        gtf = config["annotation_file"]
+    shell:
+        "(docker run --rm --user root "
+            "-v {input.wd}/{input.bam}:/{input.bam} "
+            "-v {input.wd}/{input.index}:/{input.index} " 
+            "-v {input.wd}/{output}/:/{output}/ "
+            "-v {params.gtf}:/{params.gtf} "
+            "-w / "
+            "community.wave.seqera.io/library/qualimap:2.3--8375b60bba97a2a6 "
+            "bash -c \"mkdir -p /{output} && "
+            "qualimap bamqc "
+            "-bam {input.bam} "
+            "--feature-file {params.gtf} "
+            "--paint-chromosome-limits "
+            "--nt {threads} "
+            "-outdir /{output}/ "
+            "-outformat 'html'\" "
+            ")2> {log}"
+
+rule qualimap_rnaseqqc:
+    input:
+        bam = "results/BAM/{sample}.sorted.bam",
+        index = "results/BAM/{sample}.sorted.bam.bai",
+        wd = os.getcwd()
+    output:
+        directory('results/QC/qualimap/{sample}_RNAseqQC/'),
+        'results/{sample}_countfile.rnaseqqc.txt'
+    threads: 8
+    log:
+        "results/logs/qualimap/{sample}.qualimap.rnaseqqc.log"
+    params:
+        gtf = config["annotation_file"]
+    shell:
+        # "mkdir {output}; "
+        # "chmod 777 {output}; "
+        "(docker run --rm --user root "
+            "-v {input.wd}/{input.bam}:/{input.bam} "
+            "-v {input.wd}/{input.index}:/{input.index} " 
+            "-v {input.wd}/{output[0]}/:/{output[0]}/ "
+            "-v {params.gtf}:/{params.gtf} "
+            "-v {input.wd}/results/:/results/ "
+            "-w / "
+            "community.wave.seqera.io/library/qualimap:2.3--8375b60bba97a2a6 "
+            "bash -c \"mkdir -p /{output[0]} && "
+            "qualimap rnaseq "
+            "-bam {input.bam} "
+            "-gtf {params.gtf} "
+            "--paired "
+            "--sorted "
+            "-oc /{output[1]} "
+            "-outdir /{output[0]}/ "
+            "-outformat 'html' "
+            "&& ls /results/\" "
+            ")2> {log}"
+#rule RSeQC:
 
 rule subread_featurecounts:
     input:
