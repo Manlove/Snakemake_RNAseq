@@ -23,13 +23,14 @@ import os
 
 rule all:
     input:
-        [f"fastq/trimmed/{sample}_trimmed_1.fastq.gz" for sample in config["samples"]],
-        [f"fastq/trimmed/{sample}_trimmed_2.fastq.gz" for sample in config["samples"]],
-        [f"results/QC/FastQC/{sample}_trimmed_1_fastqc.html" for sample in config["samples"]],
-        [f"results/QC/flagstats/{sample}.flagstats.txt" for sample in config["samples"]],
-        [f"results/QC/idxstats/{sample}.idxstats.txt" for sample in config["samples"]],
-        [f"results/QC/qualimap/{sample}_BAMQC/" for sample in config["samples"]],
-        [f"results/count_data/{sample}_countfile.compcount.txt" for sample in config["samples"]]
+        "info_file.txt"
+        # [f"fastq/trimmed/{sample}_trimmed_1.fastq.gz" for sample in config["samples"]],
+        # [f"fastq/trimmed/{sample}_trimmed_2.fastq.gz" for sample in config["samples"]],
+        # [f"results/QC/FastQC/{sample}_trimmed_1_fastqc.html" for sample in config["samples"]],
+        # [f"results/QC/flagstats/{sample}.flagstats.txt" for sample in config["samples"]],
+        # [f"results/QC/idxstats/{sample}.idxstats.txt" for sample in config["samples"]],
+        # [f"results/QC/qualimap/{sample}_BAMQC/" for sample in config["samples"]],
+        # [f"results/count_data/{sample}_countfile.compcount.txt" for sample in config["samples"]]
 
 rule hisat_index_genome:
     input:
@@ -54,7 +55,7 @@ rule hisat_index_genome:
 
 rule hisat2_align:
     input:
-        fastq_files = lambda wildcards: config["samples"][wildcards.sample],
+        fastq_files = lambda wildcards: config["samples"][wildcards.sample][reads],
         reference = "ref/ref.1.ht2"
     output:
         temp("temp/SAM/{sample}.sam"),
@@ -137,9 +138,6 @@ rule samtools_idxstats:
         "samtools idxstats --threads {threads} {input[0]} "
         "> results/QC/idxstats/{wildcards.sample}.idxstats.txt"
 
-
-
-#rule RSeQC:
 
 rule subread_featurecounts:
     input:

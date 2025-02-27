@@ -1,6 +1,6 @@
 rule fastqc_pre_trim:
     input:
-        lambda wildcards: config["samples"][wildcards.sample]
+        lambda wildcards: config["samples"][wildcards.sample][reads]
     output:
         "results/QC/FastQC/{sample}_1_fastqc.html",
         "results/QC/FastQC/{sample}_1_fastqc.zip",
@@ -17,7 +17,7 @@ rule fastqc_pre_trim:
 
 rule fastp_trim: 
     input:
-        lambda wildcards: config["samples"][wildcards.sample]
+        lambda wildcards: config["samples"][wildcards.sample][reads]
     output:
         "fastq/trimmed/{sample}_trimmed_1.fastq.gz",
         "fastq/trimmed/{sample}_trimmed_2.fastq.gz",

@@ -1,10 +1,14 @@
 samples:
-  Sample1: 
-   - "/Users/logan/Documents/Snakemake_RNAseq/data/Sample1_1.fastq.gz"
-   - "/Users/logan/Documents/Snakemake_RNAseq/data/Sample1_2.fastq.gz"
-  # Sample2: 
-  #  - "/Users/logan/Documents/Snakemake_RNAseq/data/Sample2_1.fastq.gz"
-  #  - "/Users/logan/Documents/Snakemake_RNAseq/data/Sample2_2.fastq.gz"
+  Sample1:
+    reads:
+     - "/Users/logan/Documents/Snakemake_RNAseq/data/Sample1_1.fastq.gz"
+     - "/Users/logan/Documents/Snakemake_RNAseq/data/Sample1_2.fastq.gz"
+    condition: "control"
+  Sample2:
+    reads:
+     - "/Users/logan/Documents/Snakemake_RNAseq/data/Sample2_1.fastq.gz"
+     - "/Users/logan/Documents/Snakemake_RNAseq/data/Sample2_2.fastq.gz"
+    condition: "treated"
 
 reference: "/Users/logan/Documents/Snakemake_RNAseq/data/Homo_sapiens/UCSC/hg38/Sequence/WholeGenomeFasta/genome.fa"
 
@@ -14,11 +18,21 @@ annotation_file_type: 'GTF'
 metadata: "/Users/logan/Documents/SampleSheetGenerator/metadata.csv"
 
 # fastp
-minimum_length: 50
-maximum_length: 0
-minimum_quality: 20
+## read lengths
+minimum_length: 50#
+maximum_length: 0#
+## Start/End Quality trimming
+mean_quality: 20#
+window_size: 4#
+## Base Quality Filtering
+disable_filtering: False
+minimum_quality: 15#
+max_unqualified: 40#
+average_minumim: 0
+## complexity filtering
 complexity_filter: True
 complexity_minimum: 30
+## Adapter trimming (auto detecting adapters will disable the given adapters)
 auto_detect_adapters: True
 adapter_read_1: "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA"
 adapter_read_2: "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT"
