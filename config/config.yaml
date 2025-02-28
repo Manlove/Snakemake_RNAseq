@@ -1,18 +1,43 @@
+KO: "miR-455_null"
+WT: "wild-type"
+
 samples:
-  Sample1:
+  KO_1:
     reads:
-     - "/Users/logan/Documents/Snakemake_RNAseq/data/Sample1_1.fastq.gz"
-     - "/Users/logan/Documents/Snakemake_RNAseq/data/Sample1_2.fastq.gz"
-    condition: "control"
-  Sample2:
-    reads:
-     - "/Users/logan/Documents/Snakemake_RNAseq/data/Sample2_1.fastq.gz"
-     - "/Users/logan/Documents/Snakemake_RNAseq/data/Sample2_2.fastq.gz"
-    condition: "treated"
+     - "/Users/logan/Documents/Snakemake_RNAseq/data/SRR30184267_1.fastq.gz"
+     - "/Users/logan/Documents/Snakemake_RNAseq/data/SRR30184267_2.fastq.gz"
+    condition: "KO"
+  # KO_2:
+  #   reads:
+  #    - "/Users/logan/Documents/Snakemake_RNAseq/data/SRR30184268_1.fastq.gz"
+  #    - "/Users/logan/Documents/Snakemake_RNAseq/data/SRR30184268_2.fastq.gz"
+  #   condition: "KO"
+  # KO_3:
+  #   reads:
+  #    - "/Users/logan/Documents/Snakemake_RNAseq/data/SRR30184269_1.fastq.gz"
+  #    - "/Users/logan/Documents/Snakemake_RNAseq/data/SRR30184269_2.fastq.gz"
+  #   condition: "KO"
+  # WT_1:
+  #   reads:
+  #    - "/Users/logan/Documents/Snakemake_RNAseq/data/SRR30184270_1.fastq.gz"
+  #    - "/Users/logan/Documents/Snakemake_RNAseq/data/SRR30184270_2.fastq.gz"
+  #   condition: "WT"
+  # WT_2:
+  #   reads:
+  #    - "/Users/logan/Documents/Snakemake_RNAseq/data/SRR30184271_1.fastq.gz"
+  #    - "/Users/logan/Documents/Snakemake_RNAseq/data/SRR30184271_2.fastq.gz"
+  #   condition: "WT"
+  # WT_3:
+  #   reads:
+  #    - "/Users/logan/Documents/Snakemake_RNAseq/data/SRR30184272_1.fastq.gz"
+  #    - "/Users/logan/Documents/Snakemake_RNAseq/data/SRR30184272_2.fastq.gz"
+  #   condition: "WT"
 
-reference: "/Users/logan/Documents/Snakemake_RNAseq/data/Homo_sapiens/UCSC/hg38/Sequence/WholeGenomeFasta/genome.fa"
+wd: "/Users/logan/Documents/Snakemake_RNAseq/"
 
-annotation_file: '/Users/logan/Documents/Snakemake_RNAseq/data/Homo_sapiens/UCSC/hg38/Annotation/Genes/genes.gtf'
+reference: "/Users/logan/Documents/Snakemake_RNAseq/data/Mus_musculus/UCSC/mm10/Sequence/WholeGenomeFasta/genome.fa"
+
+annotation_file: '/Users/logan/Documents/Snakemake_RNAseq/data/Mus_musculus/UCSC/mm10/Annotation/Genes/genes.gtf'
 annotation_file_type: 'GTF'
 
 metadata: "/Users/logan/Documents/SampleSheetGenerator/metadata.csv"

@@ -1,20 +1,21 @@
+
 rule qualimap_bamqc:
     input:
         bam = "results/BAM/{sample}.sorted.bam",
-        index = "results/BAM/{sample}.sorted.bam.bai",
-        wd = os.getcwd()
+        index = "results/BAM/{sample}.sorted.bam.bai"
     output:
         directory('results/QC/qualimap/{sample}_BAMQC/')
     threads: 8
     log:
         "results/logs/qualimap/{sample}.qualimap.bamqc.log"
     params:
-        gtf = config["annotation_file"]
+        gtf = config["annotation_file"],
+        wd = config["wd"]
     shell:
         "(docker run --rm --user root "
-            "-v {input.wd}/{input.bam}:/{input.bam} "
-            "-v {input.wd}/{input.index}:/{input.index} " 
-            "-v {input.wd}/{output}/:/{output}/ "
+            "-v {params.wd}/{input.bam}:/{input.bam} "
+            "-v {params.wd}/{input.index}:/{input.index} " 
+            "-v {params.wd}/{output}/:/{output}/ "
             "-v {params.gtf}:/{params.gtf} "
             "-w / "
             "community.wave.seqera.io/library/qualimap:2.3--8375b60bba97a2a6 "
@@ -31,8 +32,7 @@ rule qualimap_bamqc:
 rule qualimap_rnaseqqc:
     input:
         bam = "results/BAM/{sample}.sorted.bam",
-        index = "results/BAM/{sample}.sorted.bam.bai",
-        wd = os.getcwd()
+        index = "results/BAM/{sample}.sorted.bam.bai"
     output:
         directory('results/QC/qualimap/{sample}_RNAseqQC/'),
         'results/count_data/{sample}_countfile.rnaseqqc.txt'
@@ -40,14 +40,15 @@ rule qualimap_rnaseqqc:
     log:
         "results/logs/qualimap/{sample}.qualimap.rnaseqqc.log"
     params:
-        gtf = config["annotation_file"]
+        gtf = config["annotation_file"],
+        wd = config["wd"]
     shell:
         "(docker run --rm --user root "
-            "-v {input.wd}/{input.bam}:/{input.bam} "
-            "-v {input.wd}/{input.index}:/{input.index} " 
-            "-v {input.wd}/{output[0]}/:/{output[0]}/ "
+            "-v {params.wd}/{input.bam}:/{input.bam} "
+            "-v {params.wd}/{input.index}:/{input.index} " 
+            "-v {params.wd}/{output[0]}/:/{output[0]}/ "
             "-v {params.gtf}:/{params.gtf} "
-            "-v {input.wd}/results/count_data/:/results/count_data/ "
+            "-v {params.wd}/results/count_data/:/results/count_data/ "
             "-w / "
             "community.wave.seqera.io/library/qualimap:2.3--8375b60bba97a2a6 "
             "bash -c \"mkdir -p /{output[0]} && "
@@ -67,21 +68,22 @@ rule qualimap_compute_counts:
     input:
         bam = "results/BAM/{sample}.sorted.bam",
         index = "results/BAM/{sample}.sorted.bam.bai",
-        wd = os.getcwd()
+
     output:
         'results/count_data/{sample}_countfile.compcount.txt'
     threads: 8
     log:
         "results/logs/qualimap/{sample}.qualimap.compcount.log"
     params:
-        gtf = config["annotation_file"]
+        gtf = config["annotation_file"],
+        wd = config["wd"]
         
     shell:
         "(docker run --rm --user root "
-            "-v {input.wd}/{input.bam}:/{input.bam} "
-            "-v {input.wd}/{input.index}:/{input.index} " 
+            "-v {params.wd}/{input.bam}:/{input.bam} "
+            "-v {params.wd}/{input.index}:/{input.index} " 
             "-v {params.gtf}:/{params.gtf} "
-            "-v {input.wd}/results/count_data/:/results/count_data/ "
+            "-v {params.wd}/results/count_data/:/results/count_data/ "
             "-w / "
             "community.wave.seqera.io/library/qualimap:2.3--8375b60bba97a2a6 "
             "bash -c \"mkdir -p /results/count_data/ && "
@@ -96,15 +98,16 @@ rule qualimap_compute_counts:
 
 rule qualimap_data_file:
     input:
-        sample_names = [sample for sample in config["samples"]],
-        condition = [config["samples"][sample]["condition"] for sample in config["samples"]],
-        count_file = [f"results/count_data/{sample}_countfile.compcount.txt" for sample in config["samples"]]
+        count_file = [f"results/count_data/{sample}_countfile.rnaseqqc.txt" for sample in config["samples"]]
     output:
         "metadata.txt"
     log:
         "results/logs/qualimap/qualimap.datafile.log"
+    params:
+        sample_names = [sample for sample in config["samples"]],
+        condition = [config["samples"][sample]["condition"] for sample in config["samples"]]
     script:
-        "scripts/create_info_table.py"
+        "../scripts/create_info_table.py"
 
 
 rule qualimap_info_file:
@@ -124,22 +127,23 @@ rule qualimap_info_file:
 rule qualimap_counts_QC:
     input:
         data_file = "metadata.txt",
-        info_file = "info_file.txt",
-        wd = os.getcwd()
+        info_file = "info_file.txt"
     output:
         directory('results/QC/qualimap/CountsQC/')
     threads: 8
     log:
-        "results/logs/qualimap/qualimap.compcount.log"
+        "results/logs/qualimap/qualimap.countqc.log"
     params:
-        gtf = config["annotation_file"]
+        # gtf = config["annotation_file"],
+        wd = config["wd"]
         
     shell:
         "(docker run --rm --user root "
-            "-v {input.wd}/{input.data_file}:/{input.data_file} "
-            "-v {input.wd}/{input.info_file}:/{input.info_file} " 
-            "-v {params.gtf}:/{params.gtf} "
-            "-v {input.wd}/results/count_data/:/results/ "
+            "-v {params.wd}/{input.data_file}:/{input.data_file} "
+            "-v {params.wd}/{input.info_file}:/{input.info_file} " 
+            # "-v {params.gtf}:/{params.gtf} "
+            "-v {params.wd}/{output}/:/{output}/ "
+            "-v {params.wd}/results/count_data/:/results/count_data/ "
             "-w / "
             "community.wave.seqera.io/library/qualimap:2.3--8375b60bba97a2a6 "
                 "bash -c \"mkdir -p /{output} && "
@@ -147,5 +151,6 @@ rule qualimap_counts_QC:
                     "--compare "
                     "--data {input.data_file} "
                     "--info {input.info_file} "
-                    "--outdir {output} \" "
+                    "--outdir {output} "
+                    "&& ls /results/QC/qualimap/ \" "
                     ")2> {log}"

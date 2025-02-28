@@ -23,13 +23,13 @@ import os
 
 rule all:
     input:
-        "metadata.txt"
-        # [f"fastq/trimmed/{sample}_trimmed_1.fastq.gz" for sample in config["samples"]],
-        # [f"fastq/trimmed/{sample}_trimmed_2.fastq.gz" for sample in config["samples"]],
-        # [f"results/QC/FastQC/{sample}_trimmed_1_fastqc.html" for sample in config["samples"]],
+        # 'results/QC/qualimap/CountsQC/'
         # [f"results/QC/flagstats/{sample}.flagstats.txt" for sample in config["samples"]],
         # [f"results/QC/idxstats/{sample}.idxstats.txt" for sample in config["samples"]],
         # [f"results/QC/qualimap/{sample}_BAMQC/" for sample in config["samples"]],
+        [f"fastq/trimmed/{sample}_trimmed_1.fastq.gz" for sample in config["samples"]],
+        [f"fastq/trimmed/{sample}_trimmed_2.fastq.gz" for sample in config["samples"]],
+        # [f"results/QC/FastQC/{sample}_trimmed_1_fastqc.html" for sample in config["samples"]],
         # [f"results/count_data/{sample}_countfile.compcount.txt" for sample in config["samples"]]
 
 rule hisat_index_genome:
