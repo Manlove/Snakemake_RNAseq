@@ -18,27 +18,27 @@ create_pca = function(count_data, meta_data, out_path) {
   metadata = read.csv(meta_data, header=TRUE)
 
   dds = DESeqDataSetFromMatrix(countData = counts, colData = metadata, design = ~condition)
-  #dds = DESeq(dds)
+  dds = DESeq(dds)
   
-  # vsd = vst(dds, blind = TRUE)
-  # pca_data = assay(dds)
-  # p = pca(pca_data, metadata = colData(dds), removeVar = 0.8)
-  # screeplot(p)
-  # outplot = biplot(p,
-  #                 colby = "condition",
-  #                 legendPosition = "right",
-  #                 lab = rownames(metadata))
+  vsd = vst(dds, blind = TRUE)
+  pca_data = assay(dds)
+  p = pca(pca_data, metadata = colData(dds), removeVar = 0.8)
+  screeplot(p)
+  outplot = biplot(p,
+                  colby = "condition",
+                  legendPosition = "right",
+                  lab = rownames(metadata))
   
-  pca = prcomp(t(assay(dds)))
-  pca_data = as.data.frame(pca$x)
-  pca_data$condition = metadata$condition
+  # pca = prcomp(t(assay(dds)))
+  # pca_data = as.data.frame(pca$x)
+  # pca_data$condition = metadata$condition
   
-  outplot = ggplot(pca_data, aes(x=PC1,y=PC2,color = condition)) + 
-    geom_point(size = 3) + 
-    labs(title = "PCA", x = "PC1", y = "PC2") + 
-    theme_classic() + 
-    theme(legend.title = element_blank())
-  outplot
+  # outplot = ggplot(pca_data, aes(x=PC1,y=PC2,color = condition)) + 
+  #   geom_point(size = 3) + 
+  #   labs(title = "PCA", x = "PC1", y = "PC2") + 
+  #   theme_classic() + 
+  #   theme(legend.title = element_blank())
+  # outplot
   ggsave(filename = out_path, width = 6, height = 4, device = "png")
 }
 

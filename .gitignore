@@ -2,3 +2,5 @@ ref/
 data/
 results/
 .snakemake/
+fastq/
+temp/

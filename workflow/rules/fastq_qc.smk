@@ -19,9 +19,10 @@ rule fastp_trim:
     input:
         lambda wildcards: config["samples"][wildcards.sample]["reads"]
     output:
-        "fastq/trimmed/{sample}_trimmed_1.fastq.gz",
-        "fastq/trimmed/{sample}_trimmed_2.fastq.gz",
-        "results/QC/{sample}_fastp_report.html"
+        read1 = "fastq/trimmed/{sample}_trimmed_1.fastq.gz",
+        read2 = "fastq/trimmed/{sample}_trimmed_2.fastq.gz",
+        html = "results/QC/fastp/{sample}_fastp_report.html",
+        json = "results/QC/fastp/{sample}_fastp_report.json"
     conda:
         "../envs/qc.yaml"
     log:
@@ -40,8 +41,8 @@ rule fastp_trim:
         disable_filtering = f"--disable_quality_filtering" if config.get("disable_filtering",False) else ""
     shell:
         "fastp -i {input[0]} -I {input[1]} "
-            "-o fastq/trimmed/{wildcards.sample}_trimmed_1.fastq.gz "
-            "-O fastq/trimmed/{wildcards.sample}_trimmed_2.fastq.gz "
+            "-o {output.read1} "
+            "-O {output.read2} "
             "{params.adapter} "
             "{params.complexity_option} "
             "--thread {threads} "
@@ -55,7 +56,8 @@ rule fastp_trim:
             "--average_qual {params.average_min} "
             "--length_required={params.min_length} "
             "--length_limit={params.max_length} "
-            "--html ./results/QC/fastp/{wildcards.sample}_fastp_report.html "
+            "--html {output.html}"
+            "--json {output.json}"
             "2> {log}"
 
  

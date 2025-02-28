@@ -134,14 +134,11 @@ rule qualimap_counts_QC:
     log:
         "results/logs/qualimap/qualimap.countqc.log"
     params:
-        # gtf = config["annotation_file"],
-        wd = config["wd"]
-        
+        wd = config["wd"]   
     shell:
         "(docker run --rm --user root "
             "-v {params.wd}/{input.data_file}:/{input.data_file} "
             "-v {params.wd}/{input.info_file}:/{input.info_file} " 
-            # "-v {params.gtf}:/{params.gtf} "
             "-v {params.wd}/{output}/:/{output}/ "
             "-v {params.wd}/results/count_data/:/results/count_data/ "
             "-w / "

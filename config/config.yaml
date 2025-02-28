@@ -40,19 +40,19 @@ reference: "/Users/logan/Documents/Snakemake_RNAseq/data/Mus_musculus/UCSC/mm10/
 annotation_file: '/Users/logan/Documents/Snakemake_RNAseq/data/Mus_musculus/UCSC/mm10/Annotation/Genes/genes.gtf'
 annotation_file_type: 'GTF'
 
-metadata: "/Users/logan/Documents/SampleSheetGenerator/metadata.csv"
+# metadata: "/Users/logan/Documents/SampleSheetGenerator/metadata.csv"
 
 # fastp
 ## read lengths
-minimum_length: 50#
-maximum_length: 0#
+minimum_length: 50
+maximum_length: 0
 ## Start/End Quality trimming
-mean_quality: 20#
-window_size: 4#
+mean_quality: 20
+window_size: 4
 ## Base Quality Filtering
 disable_filtering: False
-minimum_quality: 15#
-max_unqualified: 40#
+minimum_quality: 15
+max_unqualified: 40
 average_minumim: 0
 ## complexity filtering
 complexity_filter: True

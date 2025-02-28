@@ -3,34 +3,13 @@ include: "./rules/fastq_qc.smk"
 include: "./rules/qualimap_qc.smk"
 import os
 
-# rule all:
-#     input:
-#         [f"results/QC/FastQC/{sample}_1_fastqc.html" for sample in config["samples"]],
-#         [f"results/QC/FastQC/{sample}_1_fastqc.zip" for sample in config["samples"]],
-#         [f"results/QC/FastQC/{sample}_2_fastqc.html" for sample in config["samples"]],
-#         [f"results/QC/FastQC/{sample}_2_fastqc.zip" for sample in config["samples"]],
-#         [f"results/QC/FastQC/{sample}_1_fastqc.html" for sample in config["samples"]],
-#         [f"results/QC/FastQC/{sample}_1_fastqc.zip" for sample in config["samples"]],
-#         [f"results/QC/FastQC/{sample}_2_fastqc.html" for sample in config["samples"]],
-#         [f"results/QC/FastQC/{sample}_2_fastqc.zip" for sample in config["samples"]],
-#         [f"fastq/trimmed/{sample}_trimmed_1.fastq.gz" for sample in config["samples"]],
-#         [f"fastq/trimmed/{sample}_trimmed_2.fastq.gz" for sample in config["samples"]],
-#         [f"results/QC/FastQC/{sample}_trimmed_1_fastqc.html" for sample in config["samples"]],
-#         "results/feature_counts.txt",
-#         "results/plots/pca_plot.png",
-#         [f"results/QC/flagstats/{sample}.flagstats.txt" for sample in config["samples"]],
-#         [f"results/QC/idxstats/{sample}.idxstats.txt" for sample in config["samples"]]
-
 rule all:
     input:
-        # 'results/QC/qualimap/CountsQC/'
-        # [f"results/QC/flagstats/{sample}.flagstats.txt" for sample in config["samples"]],
-        # [f"results/QC/idxstats/{sample}.idxstats.txt" for sample in config["samples"]],
-        # [f"results/QC/qualimap/{sample}_BAMQC/" for sample in config["samples"]],
-        [f"fastq/trimmed/{sample}_trimmed_1.fastq.gz" for sample in config["samples"]],
-        [f"fastq/trimmed/{sample}_trimmed_2.fastq.gz" for sample in config["samples"]],
-        # [f"results/QC/FastQC/{sample}_trimmed_1_fastqc.html" for sample in config["samples"]],
-        # [f"results/count_data/{sample}_countfile.compcount.txt" for sample in config["samples"]]
+        [f"results/QC/fastp/{sample}_fastp_report.json" for sample in config["samples"]]
+        # "results/count_data/feature_counts.txt",
+        # "results/plots/pca_plot.png",
+        # "results/multiqc_report/multiqc_report.html"
+        
 
 rule hisat_index_genome:
     input:
@@ -55,7 +34,8 @@ rule hisat_index_genome:
 
 rule hisat2_align:
     input:
-        fastq_files = lambda wildcards: config["samples"][wildcards.sample]["reads"],
+        fastq1 = "fastq/trimmed/{sample}_trimmed_1.fastq.gz",
+        fastq2 = "fastq/trimmed/{sample}_trimmed_2.fastq.gz",
         reference = "ref/ref.1.ht2"
     output:
         temp("temp/SAM/{sample}.sam"),
@@ -64,12 +44,12 @@ rule hisat2_align:
     conda:
         "envs/hisat.yaml"
     log:
-        "results/logs/hisat2/align_{sample}.log"
+        "results/logs/hisat2/align_{sample}.hisat2.log"
     shell:
         "hisat2 "
             "-x ref/ref "
-            "-1 {input.fastq_files[0]} "
-            "-2 {input.fastq_files[1]} "
+            "-1 {input.fastq1} "
+            "-2 {input.fastq2} "
             "-S results/BAM/{wildcards.sample}.sam "
             "--summary-file results/QC/hisat2/{wildcards.sample}.hisat2.summary "
             "--new-summary "
@@ -79,9 +59,9 @@ rule hisat2_align:
 
 rule samtools_sam2bam:
     input:
-        "temp/BAM/{sample}.sam"
+        "temp/SAM/{sample}.sam"
     output:
-        temp("results/BAM/{sample}.bam")
+        temp("results/unsorted_bam/{sample}.bam")
     conda:
         "envs/mapping.yaml"
     threads: 4
@@ -90,7 +70,7 @@ rule samtools_sam2bam:
 
 rule samtools_sort_bam:
     input:
-        "results/BAM/{sample}.bam"
+        "results/unsorted_bam/{sample}.bam"
     output:
         "results/BAM/{sample}.sorted.bam"
     conda:
@@ -165,10 +145,22 @@ rule subread_featurecounts:
             "{input.bam} "
             "2> {log}"
 
+
+rule make_metadata:
+    output:
+        "metadata.csv"
+    log:
+        "results/logs/qualimap/qualimap.datafile.log"
+    params:
+        sample_names = [sample for sample in config["samples"]],
+        condition = [config["samples"][sample]["condition"] for sample in config["samples"]]
+    script:
+        "scripts/make_metadata.py"
+
 rule plot_pca:
     input:
-        count_table = "results/feature_counts.txt",
-        metadata = config["metadata"]
+        count_table = "results/count_data/feature_counts.txt",
+        metadata = "metadata.csv"
     output:
         "results/plots/pca_plot.png"
     conda:
@@ -176,3 +168,25 @@ rule plot_pca:
     script:
         "scripts/pca.R"
     
+
+rule multiqc:
+    input:
+        [f"results/QC/FastQC/{sample}_1_fastqc.html" for sample in config["samples"]],
+        [f"results/QC/FastQC/{sample}_1_fastqc.zip" for sample in config["samples"]],
+        [f"results/QC/FastQC/{sample}_2_fastqc.html" for sample in config["samples"]],
+        [f"results/QC/FastQC/{sample}_2_fastqc.zip" for sample in config["samples"]],
+        [f"results/QC/FastQC/{sample}_trimmed_1_fastqc.html" for sample in config["samples"]],
+        [f"results/QC/FastQC/{sample}_trimmed_1_fastqc.zip" for sample in config["samples"]],
+        [f"results/QC/FastQC/{sample}_trimmed_2_fastqc.html" for sample in config["samples"]],
+        [f"results/QC/FastQC/{sample}_trimmed_2_fastqc.zip" for sample in config["samples"]],
+        [f"results/QC/flagstats/{sample}.flagstats.txt" for sample in config["samples"]],
+        [f"results/QC/idxstats/{sample}.idxstats.txt" for sample in config["samples"]],
+        [f"results/QC/qualimap/{sample}_BAMQC/" for sample in config["samples"]],
+        "results/QC/qualimap/CountsQC/"
+    output:
+        "results/multiqc_report/multiqc_report.html"
+    conda:
+        "envs/multiqc.yaml"
+    log: "results/logs/multiqc/multiqc.log"
+    shell:
+        "multiqc results/QC/ -o multiqc_report/ 2> {log}"
