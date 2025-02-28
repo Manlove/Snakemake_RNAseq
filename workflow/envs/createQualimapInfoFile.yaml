@@ -1,0 +1,4 @@
+channels:
+ - bioconda
+dependencies:
+ - bio = 1.7.1

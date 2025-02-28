@@ -97,12 +97,12 @@ rule qualimap_compute_counts:
 rule qualimap_data_file:
     input:
         sample_names = [sample for sample in config["samples"]],
-        condition = [condition for condition in config["samples"][wildcards.sample][condition]],
+        condition = [config["samples"][sample]["condition"] for sample in config["samples"]],
         count_file = [f"results/count_data/{sample}_countfile.compcount.txt" for sample in config["samples"]]
     output:
-        "/metadata.txt"
+        "metadata.txt"
     log:
-        "results/logs/qualimap/{sample}.qualimap.datafile.log"
+        "results/logs/qualimap/qualimap.datafile.log"
     script:
         "scripts/create_info_table.py"
 
@@ -112,25 +112,11 @@ rule qualimap_info_file:
         gtf_file = config["annotation_file"],
         reference = config["reference"]
     output:
-        "/info_file.txt"
+        "info_file.txt"
     log:
-        "results/logs/qualimap/{sample}.qualimap.infofile.log"
-    shell:
-        "(docker run --rm --user root "
- #           "-v {input.wd}/{input.bam}:/{input.bam} "
- #           "-v {input.wd}/{input.index}:/{input.index} " 
- #           "-v {params.gtf}:/{params.gtf} "
- #           "-v {input.wd}/results/count_data/:/results/ "
- #           "-w / "
-            "community.wave.seqera.io/library/qualimap:2.3--8375b60bba97a2a6 "
-                "ls"
-            #    "bash -c \"mkdir -p /{output} && "
-            #    "qualimap counts "
-            #        "--compare "
-                    # "--data {input.data_file} "
-                    # "--info {input.info_file} "
-                    # "--outdir {output} \" "
-                    ")2> {log}"
+        "results/logs/qualimap/qualimap.infofile.log"
+    script:
+        "scripts/createQualimapInfoFile.py -g {input.gtf_file} -f {input.reference} -o {output} 2> {log}"
         
 rule qualimap_counts_QC:
     input:

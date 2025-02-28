@@ -1,6 +1,6 @@
 rule fastqc_pre_trim:
     input:
-        lambda wildcards: config["samples"][wildcards.sample][reads]
+        lambda wildcards: config["samples"][wildcards.sample]["reads"]
     output:
         "results/QC/FastQC/{sample}_1_fastqc.html",
         "results/QC/FastQC/{sample}_1_fastqc.zip",
@@ -17,7 +17,7 @@ rule fastqc_pre_trim:
 
 rule fastp_trim: 
     input:
-        lambda wildcards: config["samples"][wildcards.sample][reads]
+        lambda wildcards: config["samples"][wildcards.sample]["reads"]
     output:
         "fastq/trimmed/{sample}_trimmed_1.fastq.gz",
         "fastq/trimmed/{sample}_trimmed_2.fastq.gz",
@@ -28,12 +28,12 @@ rule fastp_trim:
         "results/logs/fastp/{sample}.log"
     threads: 4
     params:
-        min_qual = config.get("mimimum_quality",15),
+        min_qual = config.get("minimum_quality",15),
         max_unqual = config.get("max_unqualified",40),
-        average_min = config.get("average_minumum",0),
+        average_min = config.get("average_minimum",0),
         mean_window_qual = config.get("mean_quality",20),
         cut_window = config.get("window_size",4),
-        min_length = config.get("mimimum_length",50),
+        min_length = config.get("minimum_length",50),
         max_length = config.get("maximum_length",0),
         adapter = ("--detect_adapter_for_pe" if config.get("auto_detect_adapters", False) else (f"--adapter_sequence {config['adapter_read_1']} --adapter_sequence_r2 {config['adapter_read_2']}" if (config['adapter_read_1'] != "" and config['adapter_read_2'] != "") else "")),
         complexity_option = f"--low_complexity_filter --complexity_threshold {config.get('complexity_minimum',30)}" if config.get("complexity_filter",False) else "",

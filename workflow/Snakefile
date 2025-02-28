@@ -55,7 +55,7 @@ rule hisat_index_genome:
 
 rule hisat2_align:
     input:
-        fastq_files = lambda wildcards: config["samples"][wildcards.sample][reads],
+        fastq_files = lambda wildcards: config["samples"][wildcards.sample]["reads"],
         reference = "ref/ref.1.ht2"
     output:
         temp("temp/SAM/{sample}.sam"),
