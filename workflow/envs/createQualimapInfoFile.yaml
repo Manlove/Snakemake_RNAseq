@@ -1,4 +1,10 @@
 channels:
  - bioconda
+ - conda-forge
 dependencies:
- - bio = 1.7.1
+ - pip
+ - pip:
+   - HTSeq==2.0.9
+   - bio==1.7.1
+   - biopython==1.85
+

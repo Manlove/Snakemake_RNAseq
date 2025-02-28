@@ -23,7 +23,7 @@ import os
 
 rule all:
     input:
-        "info_file.txt"
+        "metadata.txt"
         # [f"fastq/trimmed/{sample}_trimmed_1.fastq.gz" for sample in config["samples"]],
         # [f"fastq/trimmed/{sample}_trimmed_2.fastq.gz" for sample in config["samples"]],
         # [f"results/QC/FastQC/{sample}_trimmed_1_fastqc.html" for sample in config["samples"]],
@@ -161,7 +161,7 @@ rule subread_featurecounts:
             "-t exon "
             "-g gene_id "
             "-a {input.gtf} "
-            "-o {output}} "
+            "-o {output} "
             "{input.bam} "
             "2> {log}"
 

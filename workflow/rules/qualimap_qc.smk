@@ -115,25 +115,29 @@ rule qualimap_info_file:
         "info_file.txt"
     log:
         "results/logs/qualimap/qualimap.infofile.log"
+    conda:
+        "../envs/createQualimapInfoFile.yaml"
     script:
-        "scripts/createQualimapInfoFile.py -g {input.gtf_file} -f {input.reference} -o {output} 2> {log}"
-        
+        "../scripts/createQualimapInfoFile.py"
+
+
 rule qualimap_counts_QC:
     input:
-        data_file = "/metadata.txt",
-        index = "results/BAM/{sample}.sorted.bam.bai",
+        data_file = "metadata.txt",
+        info_file = "info_file.txt",
+        wd = os.getcwd()
     output:
-        directory('results/QC/qualimap/{sample}_CountsQC/')
+        directory('results/QC/qualimap/CountsQC/')
     threads: 8
     log:
-        "results/logs/qualimap/{sample}.qualimap.compcount.log"
+        "results/logs/qualimap/qualimap.compcount.log"
     params:
-        gtf = config["annotation_file"],
-        wd = os.getcwd()
+        gtf = config["annotation_file"]
+        
     shell:
         "(docker run --rm --user root "
-            "-v {input.wd}/{input.bam}:/{input.bam} "
-            "-v {input.wd}/{input.index}:/{input.index} " 
+            "-v {input.wd}/{input.data_file}:/{input.data_file} "
+            "-v {input.wd}/{input.info_file}:/{input.info_file} " 
             "-v {params.gtf}:/{params.gtf} "
             "-v {input.wd}/results/count_data/:/results/ "
             "-w / "

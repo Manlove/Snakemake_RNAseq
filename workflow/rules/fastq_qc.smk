@@ -40,8 +40,8 @@ rule fastp_trim:
         disable_filtering = f"--disable_quality_filtering" if config.get("disable_filtering",False) else ""
     shell:
         "fastp -i {input[0]} -I {input[1]} "
-            "-o ./fastq/trimmed/{wildcards.sample}_trimmed_1.fastq.gz "
-            "-O ./fastq/trimmed/{wildcards.sample}_trimmed_2.fastq.gz "
+            "-o fastq/trimmed/{wildcards.sample}_trimmed_1.fastq.gz "
+            "-O fastq/trimmed/{wildcards.sample}_trimmed_2.fastq.gz "
             "{params.adapter} "
             "{params.complexity_option} "
             "--thread {threads} "
