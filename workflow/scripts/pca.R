@@ -42,4 +42,9 @@ create_pca = function(count_data, meta_data, out_path) {
   ggsave(filename = out_path, width = 6, height = 4, device = "png")
 }
 
+# count_data = "/Users/logan/Documents/Snakemake_RNAseq/results/count_data/feature_counts.txt"
+# meta_data = "/Users/logan/Documents/Snakemake_RNAseq/metadata.csv"
+# out_path = "/Users/logan/Documents/Snakemake_RNAseq/pca.png"
+
+# create_pca(infile, metafile, outfile)
 create_pca(snakemake@input[[1]], snakemake@input[[2]], snakemake@output[[1]])

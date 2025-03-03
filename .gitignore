@@ -2,10 +2,6 @@ ref/
 data/
 results/
 .snakemake/
-<<<<<<< HEAD
 fastq/
 temp/
-=======
-fastq
->>>>>>> c7d9553 (updated .gitignore)
 .DS_Store

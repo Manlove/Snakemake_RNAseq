@@ -2,17 +2,15 @@ rule fastqc_pre_trim:
     input:
         lambda wildcards: config["samples"][wildcards.sample]["reads"]
     output:
-        "results/QC/FastQC/{sample}_1_fastqc.html",
-        "results/QC/FastQC/{sample}_1_fastqc.zip",
-        "results/QC/FastQC/{sample}_2_fastqc.html",
-        "results/QC/FastQC/{sample}_2_fastqc.zip"
+        directory("results/QC/FastQC/{sample}/")
     conda:
         "../envs/qc.yaml"
     threads: 2
     log:
         "results/logs/FastQC/{sample}.log"
     shell:
-        "fastqc {input} --outdir results/QC/FastQC/ --threads {threads} 2> {log}"
+        "mkdir -p {output}; "
+        "fastqc {input} --outdir {output} --threads {threads} 2> {log}"
 
 
 rule fastp_trim: 
@@ -56,8 +54,8 @@ rule fastp_trim:
             "--average_qual {params.average_min} "
             "--length_required={params.min_length} "
             "--length_limit={params.max_length} "
-            "--html {output.html}"
-            "--json {output.json}"
+            "--html {output.html} "
+            "--json {output.json} "
             "2> {log}"
 
  
@@ -66,17 +64,15 @@ rule fastqc_post_trim:
         "fastq/trimmed/{sample}_trimmed_1.fastq.gz",
         "fastq/trimmed/{sample}_trimmed_2.fastq.gz"
     output:
-        "results/QC/FastQC/{sample}_trimmed_1_fastqc.html",
-        "results/QC/FastQC/{sample}_trimmed_1_fastqc.zip",
-        "results/QC/FastQC/{sample}_trimmed_2_fastqc.html",
-        "results/QC/FastQC/{sample}_trimmed_2_fastqc.zip"
+        directory("results/QC/FastQC/{sample}_trimmed/")
     conda:
         "../envs/qc.yaml"
     threads: 2
     log:
         "results/logs/FastQC/{sample}_trimmed.log"
     shell:
-        "fastqc {input} --outdir results/QC/FastQC/ --threads {threads} 2> {log}"
+        "mkdir -p {output}; "
+        "fastqc {input} --outdir {output} --threads {threads} 2> {log}"
 
 
 # rule fastq_screen:

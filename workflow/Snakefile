@@ -5,10 +5,9 @@ import os
 
 rule all:
     input:
-        [f"results/QC/fastp/{sample}_fastp_report.json" for sample in config["samples"]]
-        # "results/count_data/feature_counts.txt",
-        # "results/plots/pca_plot.png",
-        # "results/multiqc_report/multiqc_report.html"
+        "results/count_data/feature_counts.txt",
+        "results/plots/pca_plot.png",
+        "results/QC/multiqc_report/multiqc_report.html"
         
 
 rule hisat_index_genome:
@@ -50,7 +49,7 @@ rule hisat2_align:
             "-x ref/ref "
             "-1 {input.fastq1} "
             "-2 {input.fastq2} "
-            "-S results/BAM/{wildcards.sample}.sam "
+            "-S temp/SAM/{wildcards.sample}.sam "
             "--summary-file results/QC/hisat2/{wildcards.sample}.hisat2.summary "
             "--new-summary "
             "--met-file results/QC/hisat2/{wildcards.sample}.hisat2.met "
@@ -66,7 +65,7 @@ rule samtools_sam2bam:
         "envs/mapping.yaml"
     threads: 4
     shell:
-        "samtools view -b --threads {threads} {input} > results/BAM/{sample}.bam"
+        "samtools view -b --threads {threads} {input} > {output}"
 
 rule samtools_sort_bam:
     input:
@@ -77,7 +76,7 @@ rule samtools_sort_bam:
         "envs/mapping.yaml"
     threads: 4
     shell:
-        "samtools sort --threads {threads} {input} -o results/BAM/{sample}.sorted.bam"
+        "samtools sort --threads {threads} {input} -o {output}"
 
 
 rule samtools_index_bam:
@@ -165,28 +164,26 @@ rule plot_pca:
         "results/plots/pca_plot.png"
     conda:
         "envs/r_plots.yaml"
+    resources:
+        time = "15s"
     script:
         "scripts/pca.R"
     
 
 rule multiqc:
     input:
-        [f"results/QC/FastQC/{sample}_1_fastqc.html" for sample in config["samples"]],
-        [f"results/QC/FastQC/{sample}_1_fastqc.zip" for sample in config["samples"]],
-        [f"results/QC/FastQC/{sample}_2_fastqc.html" for sample in config["samples"]],
-        [f"results/QC/FastQC/{sample}_2_fastqc.zip" for sample in config["samples"]],
-        [f"results/QC/FastQC/{sample}_trimmed_1_fastqc.html" for sample in config["samples"]],
-        [f"results/QC/FastQC/{sample}_trimmed_1_fastqc.zip" for sample in config["samples"]],
-        [f"results/QC/FastQC/{sample}_trimmed_2_fastqc.html" for sample in config["samples"]],
-        [f"results/QC/FastQC/{sample}_trimmed_2_fastqc.zip" for sample in config["samples"]],
+        "results/QC/",
+        [f"results/QC/FastQC/{sample}/" for sample in config["samples"]],
+        [f"results/QC/FastQC/{sample}_trimmed/" for sample in config["samples"]],
         [f"results/QC/flagstats/{sample}.flagstats.txt" for sample in config["samples"]],
         [f"results/QC/idxstats/{sample}.idxstats.txt" for sample in config["samples"]],
         [f"results/QC/qualimap/{sample}_BAMQC/" for sample in config["samples"]],
         "results/QC/qualimap/CountsQC/"
     output:
-        "results/multiqc_report/multiqc_report.html"
+        directory("results/QC/multiqc_report/"),
+        "results/QC/multiqc_report/multiqc_report.html"
     conda:
         "envs/multiqc.yaml"
     log: "results/logs/multiqc/multiqc.log"
     shell:
-        "multiqc results/QC/ -o multiqc_report/ 2> {log}"
+        "multiqc {input[0]} -o {output[0]} 2> {log}"
