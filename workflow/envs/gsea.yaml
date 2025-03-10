@@ -1,0 +1,4 @@
+channels:
+  - bioconda
+dependencies:
+  - gsea = 4.3.2

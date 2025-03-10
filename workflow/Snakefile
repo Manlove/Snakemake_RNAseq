@@ -7,7 +7,11 @@ rule all:
     input:
         "results/count_data/feature_counts.txt",
         "results/plots/pca_plot.png",
-        "results/QC/multiqc_report/multiqc_report.html"
+        "results/QC/multiqc_report/multiqc_report.html",
+        "results/differentials/dseq2_results.csv",
+        "results/differentials/GSEA/GO/",
+        "results/differentials/GSEA/Ontology/"
+
         
 
 rule hisat_index_genome:
@@ -187,3 +191,63 @@ rule multiqc:
     log: "results/logs/multiqc/multiqc.log"
     shell:
         "multiqc {input[0]} -o {output[0]} 2> {log}"
+
+
+rule run_DESeq2:
+    input:
+        count_table = "results/count_data/feature_counts.txt",
+        metadata = "metadata.csv"
+    output:
+        "results/differentials/dseq2_results.csv",
+        "results/differentials/GSEA/ranked_list.rnk"
+    conda:
+        "envs/r_plots.yaml"
+    log: "results/logs/dseq2/dseq2.difgenes.log"
+    resources:
+        time = "15s"
+    script:
+        "scripts/dseq2.R"
+
+
+rule run_GSEA_Ontology:
+    input:
+        "results/differentials/GSEA/ranked_list.rnk"
+    output:
+        directory("results/differentials/GSEA/Ontology/")
+    conda:
+        "envs/gsea.yaml"
+    params:
+        gmt = config["gmt_ontology"]
+    log:
+        "results/logs/gsea/gsea.ontology.log"
+    shell:
+        "gsea-cli GSEAPreranked "
+            "-rnk {input[0]} "
+            "-gmx {params.gmt} "
+            "-nperm 1000 "
+            "-scoring_scheme weighted "
+            "-rpt_label GSEA "
+            "-out {output} "
+            "2> {log}"
+
+
+rule run_GSEA_GO:
+    input:
+        ranked_list = "results/differentials/GSEA/ranked_list.rnk"
+    output:
+        directory("results/differentials/GSEA/GO/")
+    conda:
+        "envs/gsea.yaml"
+    log:
+        "results/logs/gsea/gsea.go.log"
+    params:
+        gmt = config["gmt_go"]
+    shell:
+        "gsea-cli GSEAPreranked "
+            "-rnk {input.ranked_list} "
+            "-gmx {params.gmt} "
+            "-nperm 1000 "
+            "-scoring_scheme weighted "
+            "-rpt_label GSEA "
+            "-out {output} "
+            "2> {log}"

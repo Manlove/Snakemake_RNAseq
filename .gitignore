@@ -5,3 +5,4 @@ results/
 fastq/
 temp/
 .DS_Store
+metadata.csv
