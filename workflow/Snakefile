@@ -8,7 +8,7 @@ rule all:
         "results/count_data/feature_counts.txt",
         "results/plots/pca_plot.png",
         "results/QC/multiqc_report/multiqc_report.html",
-        "results/differentials/dseq2_results.csv",
+        "results/differentials/deseq2_results.csv",
         "results/differentials/GSEA/GO/",
         "results/differentials/GSEA/Ontology/"
 
@@ -198,15 +198,15 @@ rule run_DESeq2:
         count_table = "results/count_data/feature_counts.txt",
         metadata = "metadata.csv"
     output:
-        "results/differentials/dseq2_results.csv",
+        "results/differentials/deseq2_results.csv",
         "results/differentials/GSEA/ranked_list.rnk"
     conda:
         "envs/r_plots.yaml"
-    log: "results/logs/dseq2/dseq2.difgenes.log"
+    log: "results/logs/deseq2/deseq2.difgenes.log"
     resources:
         time = "15s"
     script:
-        "scripts/dseq2.R"
+        "scripts/deseq2.R"
 
 
 rule run_GSEA_Ontology:
